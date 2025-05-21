@@ -1,0 +1,72 @@
+[
+  {
+    "key": "1",
+    "ticketId": "#4608544691",
+    "department": "IT Services",
+    "category": "IT Services",
+    "subCategory": "Installation Services",
+    "requester": "James Nelson",
+    "subject": "Cannot Connect to Wi-Fi",
+    "status": "Open",
+    "createdDate": "24/12/16 12:19 PM",
+    "timeSpent": "0 d : 0 h : 33 m",
+    "priority": "High",
+    "description": "User reports being unable to connect to the corporate Wi-Fi network after a recent office relocation."
+  },
+  {
+    "key": "2",
+    "ticketId": "#9331637075",
+    "department": "Human Resources",
+    "category": "Technical Issue",
+    "subCategory": "Software Issues",
+    "requester": "James Nelson",
+    "subject": "TP-Link Archer A7",
+    "status": "Pending",
+    "createdDate": "24/11/14 01:29 PM",
+    "timeSpent": "31 d : 23 h : 24 m",
+    "priority": "Low",
+    "description": "Issue raised regarding unstable connection with TP-Link Archer A7 router in the HR department."
+  },
+  {
+    "key": "3",
+    "ticketId": "#1066458599",
+    "department": "Administrative",
+    "category": "Administrative Support",
+    "subCategory": "Application Crash",
+    "requester": "James Nelson",
+    "subject": "Application Crash",
+    "status": "Open",
+    "createdDate": "24/11/14 01:26 PM",
+    "timeSpent": "31 d : 23 h : 27 m",
+    "priority": "High",
+    "description": "User reported repeated crashes of the payroll application during processing tasks."
+  },
+  {
+    "key": "4",
+    "ticketId": "#1019169766",
+    "department": "Administrative",
+    "category": "Administrative Support",
+    "subCategory": "Office Supplies",
+    "requester": "James Nelson",
+    "subject": "Email Not Syncing",
+    "status": "Closed",
+    "createdDate": "24/11/14 01:24 PM",
+    "timeSpent": "31 d : 23 h : 28 m",
+    "priority": "Medium",
+    "description": "Email client is not syncing with the mail server, affecting the user's ability to send or receive emails."
+  },
+  {
+    "key": "5",
+    "ticketId": "#9873480197",
+    "department": "Human Resources",
+    "category": "Administrative Support",
+    "subCategory": "Office Supplies",
+    "requester": "James Nelson",
+    "subject": "Account Locked Out",
+    "status": "Open",
+    "createdDate": "24/11/14 01:23 PM",
+    "timeSpent": "31 d : 23 h : 30 m",
+    "priority": "High",
+    "description": "User account was locked after multiple failed login attempts; request for account unlock."
+  }
+]
