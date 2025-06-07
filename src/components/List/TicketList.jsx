@@ -32,6 +32,7 @@ import {
   InboxOutlined,
   EditOutlined,
   EyeOutlined,
+  CloseCircleOutlined,
 } from "@ant-design/icons";
 import tickets from "../../tickets.json";
 import dayjs from "dayjs";
@@ -48,7 +49,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import duration from "dayjs/plugin/duration";
 import EditTicket from "../EditTicket/EditTicket";
 import { fetchMasterList } from "../../features/masterSlice";
+import { useParams } from "react-router-dom";
+import utc from "dayjs/plugin/utc";
 
+dayjs.extend(utc);
 dayjs.extend(customParseFormat);
 dayjs.extend(duration);
 const { Dragger } = Upload;
@@ -62,7 +66,9 @@ const prData = [
   { label: "Low", value: "Low" },
 ];
 export default function TicketList() {
+  const { prm } = useParams();
   const dispatch = useDispatch();
+  const fileListRef = useRef([]);
   const { masterData } = useSelector((state) => state.master);
   const { ticketData, loading, error } = useSelector((state) => state.ticket);
   const [form] = Form.useForm();
@@ -75,6 +81,7 @@ export default function TicketList() {
   const [dataSource, setDataSource] = useState([]);
   const [filteredTickets, setFilteredTickets] = useState(dataSource);
   const [activeFilter, setActiveFilter] = useState("All");
+  const [activeStatus, setActiveStatus] = useState("All");
   const [expandedRowKey, setExpandedRowKey] = useState(null);
   const [label, setLabel] = useState("Ticket");
   const [formData, setFormData] = useState({
@@ -104,6 +111,12 @@ export default function TicketList() {
   const [allCategories, setAllCategories] = useState([]);
   const [categories, setCategories] = useState([]);
   const [statuses, setStatuses] = useState([]);
+  const [status, setStatus] = useState([]);
+  const [openn, setOpenn] = useState(null);
+  const [pending, setPending] = useState(null);
+  const [closed, setClosed] = useState(null);
+  const [clf, setClf] = useState(null);
+  const [complete, setComplete] = useState(null);
 
   useEffect(() => {
     dispatch(fetchMasterList());
@@ -139,9 +152,10 @@ export default function TicketList() {
     }
     return "";
   };
+
   const codeByTitle = (title) => {
     if (title) {
-      const item = masterData.find((i) => i.title === title);
+      const item = masterData.find((i) => i.code === title);
       return item?.code || "";
     }
     return "";
@@ -153,11 +167,22 @@ export default function TicketList() {
     }
     return "";
   };
+  const codeByStatus = (sts) => {
+    if (sts) {
+      const item = masterData.find((i) => i.title === sts);
+      return item?.code || "";
+    }
+    return "";
+  };
 
   useEffect(() => {
     if (Array.isArray(masterData)) {
       var filteredSts = masterData.filter((i) => i.label === "Status" && i.status === true);
+      var filteredOpen = filteredSts.filter((i) => i.title === "Open");
+      console.log(filteredOpen)
+      setStatus(filteredOpen[0]?.code);
       setStatuses(filteredSts);
+      console.log(status)
     } else {
       setStatuses([]);
     }
@@ -165,6 +190,8 @@ export default function TicketList() {
 
   const handleCustomUpload = async ({ file, onSuccess, onError }) => {
     try {
+
+
       console.log("Uploading file:", file);
 
       setTimeout(() => {
@@ -187,12 +214,32 @@ export default function TicketList() {
       const withKeys = ticketData.map((item) => ({
         ...item,
         key: item.ticketId,
+        // department: titleByCode(item.department),
+        // category: titleByCode(item.category),
+        // status: titleByCode(item.status),
       }));
-      setDataSource(withKeys);
+      console.log(withKeys)
+      const sortedData = withKeys.sort((a, b) =>
+        dayjs.utc(b.updatedOn).valueOf() - dayjs.utc(a.updatedOn).valueOf()
+      );
+      console.log(sortedData)
+      setDataSource(sortedData);
     } else {
       setDataSource([]);
     }
   }, [ticketData]);
+
+  useEffect(() => {
+    if (masterData.length && dataSource.length) {
+      setOpenn(dataSource.filter(i => i.status === codeByStatus("Open")).length);
+      setPending(dataSource.filter(i => i.status === codeByStatus("Pending")).length);
+      setClf(dataSource.filter(i => i.status === codeByStatus("Clarification")).length);
+      setComplete(dataSource.filter(i => i.status === codeByStatus("Completed")).length);
+      setClosed(dataSource.filter(i => i.status === codeByStatus("Closed")).length);
+      console.log("Open:", openn, "Pending:", pending, "Clarification:", clf, "Completed:", complete, "Closed:", closed);
+    }
+  }, [masterData, dataSource]);
+
 
   const showDrawer = () => {
     setOpen(true);
@@ -216,12 +263,6 @@ export default function TicketList() {
     form.resetFields();
     setMessageVisible(false);
   };
-
-  const openn = dataSource.filter((i) => i.status === "Open").length;
-  const pending = dataSource.filter((i) => i.status === "Pending").length;
-  const closed = dataSource.filter((i) => i.status === "Closed").length;
-  const clf = dataSource.filter((i) => i.status === "Clarification").length;
-  const complete = dataSource.filter((i) => i.status === "Completed").length;
 
   const searchInput = useRef(null);
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
@@ -247,7 +288,7 @@ export default function TicketList() {
             onChange={(date, dateString) =>
               setSelectedKeys(dateString ? [dateString] : [])
             }
-            value={selectedKeys[0] ? dayjs(selectedKeys[0]) : null}
+            value={selectedKeys[0] ? dayjs.utc(selectedKeys[0]) : null}
             style={{ marginBottom: 8, display: "block", width: "100%" }}
           />
         ) : (
@@ -299,7 +340,7 @@ export default function TicketList() {
     },
     render: (text) =>
       dataIndex === "updatedOn" ? (
-        dayjs(text).format("YYYY-MM-DD") // Using Day.js to format dates
+        dayjs.utc(text).format("YYYY-MM-DD")
       ) : searchedColumn === dataIndex ? (
         <Highlighter
           highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
@@ -334,12 +375,20 @@ export default function TicketList() {
       dataIndex: "department",
       key: "department",
       ...getColumnSearchProps("department"),
+      render: (code) => {
+        const item = departments.find((i) => i.code === code);
+        return item?.title || code;
+      }
     },
     {
       title: "Category",
       dataIndex: "category",
       key: "category",
       ...getColumnSearchProps("category"),
+      render: (code) => {
+        const item = allCategories.find((i) => i.code === code);
+        return item?.title || code;
+      },
       width: '15%'
     },
     {
@@ -347,18 +396,19 @@ export default function TicketList() {
       dataIndex: "status",
       key: "status",
       width: "10%",
-      filters: statusMaster.map((status) => ({
-        text: status,
-        value: status,
-      })),
-      onFilter: (value, record) => record.status === value,
-      render: (status) => (
-        <Tag
-          color={themeByStatus(status)}
-        >
-          {status}
-        </Tag>
-      ),
+      // filters: statusMaster.map((status) => ({
+      //   text: status,
+      //   value: status,
+      // })),
+      // onFilter: (value, record) => record.status === value,
+      render: (status) => {
+        const item = statuses.find((i) => i.code === status);
+        return (
+          <Tag color={themeByStatus(item?.title || status)}>
+            {item?.title || status}
+          </Tag>
+        );
+      }
     },
     {
       title: "Created Date",
@@ -369,7 +419,7 @@ export default function TicketList() {
         parseDate(a.createdOn).valueOf() - parseDate(b.createdOn).valueOf(),
       sortDirections: ["descend", "ascend"],
       render: (text) =>
-        dayjs(text).format("DD-MM-YYYY hh:mm A"),
+        dayjs.utc(text).format("DD-MM-YYYY hh:mm A"),
     },
     // {
     //   title: "Time Spent",
@@ -391,37 +441,44 @@ export default function TicketList() {
     //   },
     // },
     {
-      title: <span style={{ fontSize: "12px", marginLeft:'25%' }}>Actions</span>,
+      title: <span style={{ fontSize: "12px", marginLeft: "25%" }}>Actions</span>,
       dataIndex: "operation",
       width: "10%",
       render: (_, record) => (
-        <>
+        <div style={{ display: "flex", gap: "8px" }}>
           <Button
-            onClick={() => handleEdit(record)}
-            variant="text"
-            color="default"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleEdit(record);
+            }}
+            type="text"
           >
             <EditOutlined />
           </Button>
           <Button
-            onClick={() => handleView(record)}
-            variant="text"
-            color="default"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleView(record);
+            }}
+            type="text"
           >
             <EyeOutlined />
           </Button>
-        </>
-      ),
+        </div>
+      )
     },
   ];
+
   const handleEdit = (itm) => {
-    setIsEditTicket(true);
-    setEditingTicket(itm);
+    console.log("EDIT:", itm);
+    setEditingTicket({ ...itm, mode: "edit" });
   };
+
   const handleView = (itm) => {
-    setIsEditTicket(false);
-    setEditingTicket(itm);
+    console.log("VIEW:", itm);
+    setEditingTicket({ ...itm, mode: "view" });
   };
+
   const handleClose = () => {
     setEditingTicket(null);
   };
@@ -436,7 +493,7 @@ export default function TicketList() {
           department: formData.department,
           category: formData.category,
           piriority: formData.piriority,
-          status: formData.status,
+          status: status,
           requester: "sudalai@codasol.com",
           updatedBy: [
             {
@@ -465,6 +522,19 @@ export default function TicketList() {
               setButton("Submit");
               form.resetFields();
               setFileList([]);
+              dispatch(generateCode(label))
+                .then((response) => {
+                  console.log(response);
+                  setFormData((prev) => ({
+                    ...prev,
+                    ticketId: response.payload,
+                    department: "",
+                  }));
+                })
+                .catch((error) => {
+                  <Alert>{error.message}</Alert>;
+                  console.log("Something went wrong. Please try again later.");
+                });
             } else {
               setMessageVisible(true);
               setMessageType("warning");
@@ -487,15 +557,30 @@ export default function TicketList() {
       });
   };
   useEffect(() => {
-    if (activeFilter === "All") {
-      setFilteredTickets(dataSource);
-    } else {
-      setFilteredTickets(dataSource.filter((t) => t.status === activeFilter));
+    let filtered = dataSource;
+
+    if (activeStatus !== "All") {
+      filtered = filtered.filter((t) => t.status === activeFilter);
     }
-  }, [dataSource, activeFilter]);
+
+    if (prm?.trim()) {
+      const searchTerm = prm.toLowerCase();
+      filtered = filtered.filter((t) =>
+        (t.ticketId && t.ticketId.toLowerCase().includes(searchTerm)) ||
+        (t.subject && t.subject.toLowerCase().includes(searchTerm)) ||
+        (t.department && t.department.toLowerCase().includes(searchTerm)) ||
+        (t.category && t.category.toLowerCase().includes(searchTerm)) ||
+        (t.status && t.status.toLowerCase().includes(searchTerm))
+      );
+    }
+
+    setFilteredTickets(filtered);
+  }, [dataSource, activeFilter, prm]);
+
 
   const handleFilter = (status) => {
-    setActiveFilter(status);
+    setActiveStatus(status);
+    setActiveFilter(codeByStatus(status));
   };
 
   const handleDepartment = (val) => {
@@ -504,7 +589,10 @@ export default function TicketList() {
     setFormData((prev) => ({
       ...prev,
       department: val,
+      category: "",
     }));
+
+    form.setFieldValue('category', '');
 
     const parentTitle = codeByTitle(val);
     console.log("Parent Title:", parentTitle);
@@ -517,11 +605,21 @@ export default function TicketList() {
     setCategories(filteredCat);
   };
 
+  useEffect(() => {
+    let timer;
+    if (messageVisible) {
+      timer = setTimeout(() => {
+        setMessageVisible(false);
+      }, 5000);
+    }
+    return () => clearTimeout(timer);
+  }, [messageVisible]);
+
   return (
     <>
       {editingTicket && (
         <EditTicket
-          isEdit={isEditTicket}
+          isEdit={editingTicket.mode === "edit"}
           singleData={editingTicket}
           onClose={handleClose}
         />
@@ -542,29 +640,42 @@ export default function TicketList() {
           >
             <Space wrap>
               {["Open", "Clarification", "Completed", "Closed", "Pending", "All"].map((status) => (
-                <Button
-                  key={status}
-                  onClick={() => handleFilter(status)}
-                  className={`status-btn ${status.toLowerCase()} ${activeFilter === status ? "active" : ""
-                    }`}
-                >
-                  <Text strong>{status}</Text>{" "}
-                  <Text style={{ marginLeft: 6 }}>
-                    {status === "Open"
-                      ? openn
-                      : status === "Clarification"
-                        ? clf
-                        :status === "Completed"
-                        ? complete
-                        :status === "Closed"
-                        ? closed
-                        : status === "Pending"
-                          ? pending
-                          : dataSource.length}
-                  </Text>
-                </Button>
+                <div key={status} style={{ position: "relative", display: "inline-block" }}>
+                  {/* Close Button (if needed) */}
+                  {(activeStatus !== 'All' && activeStatus === status) && <div className="close-btn" >
+                    <Button
+                      size="small"
+                      type="text"
+                      danger
+                      icon={<CloseCircleOutlined />}
+                    onClick={() => handleFilter("All")} 
+                    />
+                  </div>
+                  }
+                  {/* Status Button */}
+                  <Button
+                    onClick={() => handleFilter(status)}
+                    className={`status-btn ${status.toLowerCase()} ${activeStatus === status ? "active" : ""}`}
+                  >
+                    <Text strong>{status}</Text>
+                    <Text style={{ marginLeft: 6 }}>
+                      {status === "Open"
+                        ? openn
+                        : status === "Clarification"
+                          ? clf
+                          : status === "Completed"
+                            ? complete
+                            : status === "Closed"
+                              ? closed
+                              : status === "Pending"
+                                ? pending
+                                : dataSource.length}
+                    </Text>
+                  </Button>
+                </div>
               ))}
             </Space>
+
           </Space>
           <Drawer
             title="Create Ticket"
@@ -586,7 +697,7 @@ export default function TicketList() {
                 <motion.div
                   initial={{ opacity: 0, y: 0 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
+                  exit={{ opacity: 0, y: 0 }}
                   transition={{ duration: 0.3 }}
                 >
                   <Alert
@@ -601,12 +712,16 @@ export default function TicketList() {
               )}
             </AnimatePresence>
             <Form form={form} layout="vertical">
-              <Row>
+              <Row style={{ paddingLeft: '20px' }}>
                 <Col span={24}>
-                  {" "}
                   <Form.Item
                     name="subject"
-                    label="Subject"
+                    label={
+                      <span>
+                        Subject <span style={{ color: 'red' }}>*</span>
+                      </span>
+                    }
+                    required={false}
                     rules={[
                       { required: true, message: "Please enter subject" },
                     ]}
@@ -622,11 +737,16 @@ export default function TicketList() {
                   </Form.Item>
                 </Col>
               </Row>
-              <Row>
+              <Row style={{ paddingLeft: '20px' }}>
                 <Col span={12} style={{ paddingRight: "10px" }}>
                   <Form.Item
                     name="department"
-                    label="Dapartment"
+                    label={
+                      <span>
+                        Dapartment <span style={{ color: 'red' }}>*</span>
+                      </span>
+                    }
+                    required={false}
                     rules={[
                       { required: true, message: "Please enter Dapartment" },
                     ]}
@@ -637,7 +757,7 @@ export default function TicketList() {
                       placeholder="Selct department"
                       options={departments.map((i) => {
                         return {
-                          value: i.title,
+                          value: i.code,
                           label: i.title,
                         };
                       })}
@@ -647,7 +767,12 @@ export default function TicketList() {
                 <Col span={12} style={{ paddingLeft: "10px" }}>
                   <Form.Item
                     name="category"
-                    label="Category"
+                    label={
+                      <span>
+                        Category <span style={{ color: 'red' }}>*</span>
+                      </span>
+                    }
+                    required={false}
                     rules={[
                       { required: true, message: "Please enter category" },
                     ]}
@@ -660,7 +785,7 @@ export default function TicketList() {
                       placeholder="Selct category"
                       options={categories.map((i) => {
                         return {
-                          value: i.title,
+                          value: i.code,
                           label: i.title,
                         };
                       })}
@@ -669,11 +794,16 @@ export default function TicketList() {
                   </Form.Item>
                 </Col>
               </Row>
-              <Row>
+              <Row style={{ paddingLeft: '20px' }}>
                 <Col span={12} style={{ paddingRight: "10px" }}>
                   <Form.Item
                     name="priority"
-                    label="Priority"
+                    label={
+                      <span>
+                        Priority <span style={{ color: 'red' }}>*</span>
+                      </span>
+                    }
+                    required={false}
                     rules={[
                       { required: true, message: "Please enter priority" },
                     ]}
@@ -696,7 +826,7 @@ export default function TicketList() {
                       placeholder="Selct status"
                       options={statuses.map((i) => {
                         return {
-                          value: i.title,
+                          value: i.code,
                           label: i.title,
                         };
                       })}
@@ -705,12 +835,17 @@ export default function TicketList() {
                 </Col>
               </Row>
 
-              <Row>
+              <Row style={{ paddingLeft: '20px' }}>
                 <Col span={24}>
                   {" "}
                   <Form.Item
                     name="description"
-                    label="Description"
+                    label={
+                      <span>
+                        Description <span style={{ color: 'red' }}>*</span>
+                      </span>
+                    }
+                    required={false}
                     rules={[
                       { required: true, message: "Please enter description" },
                     ]}
@@ -729,7 +864,7 @@ export default function TicketList() {
                   </Form.Item>
                 </Col>
               </Row>
-              <Row>
+              <Row style={{ paddingLeft: '20px' }}>
                 <Col span={24}>
                   <Form.Item name="attchment" label="Attchment">
                     <Dragger
@@ -737,12 +872,37 @@ export default function TicketList() {
                       multiple
                       customRequest={handleCustomUpload}
                       fileList={fileList}
-                      onChange={({ file, fileList }) => {
-                        const fileNames = fileList.map((file) => file.name);
-                        setFilesNameLst(fileNames);
-                        setFileList(fileList);
+                      beforeUpload={(file) => {
+                        const isDuplicate = fileListRef.current.some(
+                          (f) => f.name === file.name && f.size === file.size
+                        );
+                        if (isDuplicate) {
+                          setMessageContent(`${file.name} is already added.`);
+                          setMessageType("warning");
+                          setMessageVisible(true)
+                          message.warning();
+                          return Upload.LIST_IGNORE;
+                        }
 
-                        const validFiles = fileList
+                        const isLt5MB = file.size / 1024 / 1024 < 5;
+                        if (!isLt5MB) {
+                          setMessageContent(`${file.name} is larger than 5MB.`);
+                          setMessageType("warning");
+                          setMessageVisible(true)
+                          message.error(`${file.name} is larger than 5MB.`);
+                          return Upload.LIST_IGNORE;
+                        }
+
+                        return true;
+                      }}
+                      onChange={({ fileList: newFileList }) => {
+                        setFileList(newFileList);
+                        fileListRef.current = newFileList;
+
+                        const fileNames = newFileList.map((file) => file.name);
+                        setFilesNameLst(fileNames);
+
+                        const validFiles = newFileList
                           .filter((f) => f.status === "done")
                           .map((f) => f.originFileObj);
 
@@ -786,9 +946,23 @@ export default function TicketList() {
             },
             rowExpandable: () => true,
           }}
-
+          onRow={(record, rowIndex) => {
+            return {
+              onClick: () => handleView(record),
+            };
+          }}
+          pagination={{
+            showSizeChanger: true,
+            showQuickJumper: true,
+            pageSizeOptions: ['5', '10', '20', '50'],
+            showTotal: (total, range) =>
+              `${range[0]}–${range[1]} of ${total} items`,
+            defaultPageSize: 10,
+            position: ['bottomLeft']
+          }}
+          className="left-pagination"
         />
-      </div>
+      </div >
     </>
   );
 }

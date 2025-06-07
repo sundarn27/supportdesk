@@ -25,6 +25,7 @@ export const createTicket = createAsyncThunk(
   "ticketData/createTicket",
   async ({ data, files }, { rejectWithValue }) => {
     try {
+      console.log("Thunk createTicket called with data:", data);
       const formData = new FormData();
       formData.append("data", JSON.stringify(data));
       files.forEach((file) => {

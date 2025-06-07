@@ -189,9 +189,9 @@ export default function Status() {
       dataIndex === "updatedOn"
         ? record[dataIndex]?.startsWith(value)
         : record[dataIndex]
-            ?.toString()
-            .toLowerCase()
-            .includes(value.toLowerCase()),
+          ?.toString()
+          .toLowerCase()
+          .includes(value.toLowerCase()),
     render: (text) =>
       dataIndex === "updatedOn" ? (
         dayjs(text).format("YYYY-MM-DD")
@@ -208,49 +208,49 @@ export default function Status() {
   });
 
   const columns = [
-  {
-    title: "Status ID",
-    dataIndex: "code",
-    key: "code",
-    ...getColumnSearchProps("code"),
-  },
-  {
-    title: "Status Name",
-    dataIndex: "title",
-    key: "title",
-    render: (_, record) => (
-      <Tag color={record.theme || "blue"}>{record.title}</Tag>
-    ),
-    ...getColumnSearchProps("title"),
-  },
-  {
-    title: "Status",
-    dataIndex: "status",
-    key: "status",
-    render: (text, record, index) => (
-      <Switch
-        checked={record.status}
-        onChange={(checked) => handleStatusChange(checked, record, index)}
-        checkedChildren="Active"
-        unCheckedChildren="Inactive"
-        disabled
-      />
-    ),
-  },
-  {
-    title: <span style={{ fontSize: "12px", fontWeight: "bold" }}>EDIT</span>,
-    dataIndex: "operation",
-    key: "edit",
-    width: "10%",
-    render: (_, record) => (
-      <Button
-        onClick={() => handleEdit(record)}
-        type="dashed"
-        icon={<EditOutlined />}
-      />
-    ),
-  },
-];
+    {
+      title: "Status ID",
+      dataIndex: "code",
+      key: "code",
+      ...getColumnSearchProps("code"),
+    },
+    {
+      title: "Status Name",
+      dataIndex: "title",
+      key: "title",
+      render: (_, record) => (
+        <Tag color={record.theme || "blue"}>{record.title}</Tag>
+      ),
+      ...getColumnSearchProps("title"),
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (text, record, index) => (
+        <Switch
+          checked={record.status}
+          onChange={(checked) => handleStatusChange(checked, record, index)}
+          checkedChildren="Active"
+          unCheckedChildren="Inactive"
+          disabled
+        />
+      ),
+    },
+    {
+      title: <span style={{ fontSize: "12px", fontWeight: "bold" }}>EDIT</span>,
+      dataIndex: "operation",
+      key: "edit",
+      width: "10%",
+      render: (_, record) => (
+        <Button
+          onClick={() => handleEdit(record)}
+          type="dashed"
+          icon={<EditOutlined />}
+        />
+      ),
+    },
+  ];
 
 
   const handleEdit = (itm) => {
@@ -291,6 +291,17 @@ export default function Status() {
               // setIsEdit(false);
               // setButton("Submit");
               // form.resetFields();
+              dispatch(generateCode(label))
+                .then((response) => {
+                  console.log(response);
+                  setFormData((prev) => ({
+                    ...prev,
+                    code: response.payload,
+                  }));
+                })
+                .catch((error) => {
+                  console.log("Something went wrong. Please try again later.");
+                });
             } else {
               setMessageVisible(true);
               setMessageType("warning");
@@ -369,11 +380,16 @@ export default function Status() {
             )}
           </AnimatePresence>
           <Form form={form} layout="vertical">
-            <Row gutter={16}>
+            <Row gutter={16} style={{ paddingLeft: '20px' }}>
               <Col span={24}>
                 <Form.Item
                   name="statusName"
-                  label="Status Name"
+                  label={
+                    <span>
+                      Status Name <span style={{ color: 'red' }}>*</span>
+                    </span>
+                  }
+                  required={false}
                   rules={[
                     { required: true, message: "Please enter status name" },
                   ]}
@@ -389,11 +405,16 @@ export default function Status() {
                 </Form.Item>
               </Col>
             </Row>
-            <Row gutter={16}>
+            <Row gutter={16} style={{ paddingLeft: '20px' }}>
               <Col span={24}>
                 <Form.Item
                   name="theme"
-                  label="Color"
+                  label={
+                    <span>
+                      Color <span style={{ color: 'red' }}>*</span>
+                    </span>
+                  }
+                  required={false}
                   rules={[
                     { required: true, message: "Please select the theme" },
                   ]}
@@ -408,7 +429,7 @@ export default function Status() {
                 </Form.Item>
               </Col>
             </Row>
-            <Row gutter={16}>
+            <Row gutter={16} style={{ paddingLeft: '20px' }}>
               <Col span={24}>
                 <Form.Item name="status" label="Status" valuePropName="checked">
                   <Switch
@@ -430,7 +451,16 @@ export default function Status() {
         columns={columns}
         dataSource={dataSource}
         rowKey="categoryId"
-        pagination={{ pageSize: 5 }}
+        pagination={{
+            showSizeChanger: true,
+            showQuickJumper: true,
+            pageSizeOptions: ['5', '10', '20', '50'],
+            showTotal: (total, range) =>
+              `${range[0]}–${range[1]} of ${total} items`,
+            defaultPageSize: 8,
+            position: ['bottomLeft']
+          }}
+           className="left-pagination"
         style={{ margin: "10px 5px" }}
       />
     </>

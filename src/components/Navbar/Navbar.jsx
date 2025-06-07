@@ -1,20 +1,32 @@
 import React, { useState } from "react";
-import { Avatar, Button, Card, Divider, Dropdown, Layout, List, Menu, Space, Tooltip, Typography } from "antd";
+import { Avatar, Button, Card, Divider, Dropdown, Input, Layout, List, Menu, Space, Tooltip, Typography } from "antd";
 import {
   LinkedinOutlined,
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  SearchOutlined,
   SettingOutlined,
   UserOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
+import LOGO from "../../../src/assets/coda-logo.png"
+import Search from "antd/es/input/Search";
+import { useNavigate } from "react-router-dom";
 
 const { Header } = Layout;
 const { Text, Title } = Typography;
 
 const Navbar = ({ collapsed, toggleSidebar }) => {
+  const [searchValue, setSearchValue] = useState("");
+  const navigate = useNavigate();
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && searchValue.trim()) {
+      navigate(`/tickets/${searchValue.trim()}`);
+    }
+  };
+  
   const currentDate = new Date().toLocaleString();
 
   const options = [
@@ -87,19 +99,37 @@ const Navbar = ({ collapsed, toggleSidebar }) => {
     <>
       <Layout>
         <Header className="nav-container">
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <Button
+          <div style={{ display: "flex", alignItems: "center", justifyContent: 'center' }}>
+            {/* <Button
               type="text"
               onClick={toggleSidebar}
               icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
               style={{ color: "#fff" }}
-            />
-            <span style={{ color: "#fff", marginLeft: 16, fontSize: 16 }}>
+            /> */}
+            <img src={LOGO} alt="CODA" style={{ width: 40, height: 30 }} />
+            <span style={{ color: "#fff", marginLeft: 16, fontSize: 16, marginBottom: 4 }}>
               Support Desk
             </span>
           </div>
-
-          <div>
+          <div style={{ display: "flex", flexDirection: 'row', alignItems: "center", justifyContent: 'center' }}>
+            {/* <Search
+              placeholder="Search..."
+              onSearch={(value) => navigate("/tickets/") }
+              style={{ width: 450, marginRight:16}}
+              allowClear
+            /> */}
+            <Input
+              size="middle"
+              placeholder="Search here..."
+              prefix={<SearchOutlined style={{ color: "#aaa",marginRight:2 }} />}
+              onChange={(e) => navigate(`/tickets/${e.target.value}`)}
+              onKeyDown={(e) => navigate(`/tickets/${e.target.value}`)}
+              allowClear
+              style={{
+                borderRadius: "8px",
+                 width: 450, marginRight:16,
+              }}
+            />
             <Dropdown overlay={menu} placement="bottomRight">
               <Avatar
                 style={{ backgroundColor: "#87d068", cursor: "pointer" }}

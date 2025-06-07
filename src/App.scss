@@ -56,11 +56,11 @@ body {
   gap: 0px;
   width: 50%;
 }
-.card-shadow{
+.card-shadow {
   background: #ffffffb7;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    padding: 5px 10px;
-    border-radius: 5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 5px 10px;
+  border-radius: 5px;
 }
 
 //Navbar
@@ -88,10 +88,10 @@ body {
     display: flex;
     flex-direction: column;
   }
-  .dash-body{
+  .dash-body {
     display: flex;
     flex-direction: column;
-    height:300px;
+    height: 300px;
     overflow: scroll;
     overflow-x: hidden;
     &::-webkit-scrollbar {
@@ -169,7 +169,6 @@ body {
       font-size: 12px;
       font-weight: 500;
     }
-    
 
     .ticket-tag {
       font-size: 11px;
@@ -198,7 +197,6 @@ body {
   }
 }
 
-
 //Stats
 
 .ticket-stats {
@@ -221,8 +219,6 @@ body {
   }
 }
 
-
-
 .fade-alert {
   opacity: 1;
   transition: opacity 0.3s ease-in-out;
@@ -235,8 +231,6 @@ body {
   padding: 0;
   margin: 0;
 }
-
-
 
 //Status
 .status-btn {
@@ -254,14 +248,14 @@ body {
   background-color: #722ed120;
 }
 .status-btn.completed {
-  background-color: #53c41a27; 
+  background-color: #53c41a27;
 }
 .status-btn.closed {
   background-color: #8c8c8c28;
 }
 
 .status-btn.pending {
-  background-color: #faad1426; 
+  background-color: #faad1426;
 }
 
 .status-btn.all {
@@ -315,25 +309,25 @@ body {
   }
 }
 
-.comments{
-   height: 20%;
-   padding: 10px;
+.comments {
+  height: 20%;
+  padding: 10px;
 }
 
 .ant-drawer .ant-drawer-body {
   padding: 10px;
 }
 
-.ant-divider-horizontal{
+.ant-divider-horizontal {
   margin: 0;
   margin-bottom: 10px;
 }
-.ant-card .ant-card-head{
+.ant-card .ant-card-head {
   min-height: 40px;
   padding-bottom: 0;
   padding-left: 10px;
 }
-.ant-card .ant-card-body{
+.ant-card .ant-card-body {
   padding: 0;
   padding-top: 10px;
   padding-left: 10px;
@@ -360,7 +354,7 @@ body {
 }
 
 .ant-table-tbody > tr > td {
-  padding: 4px 12px !important;
+  padding: 0.25px 12px !important;
   font-size: 12px;
   height: 20px !important;
   white-space: nowrap;
@@ -368,6 +362,67 @@ body {
   text-overflow: ellipsis;
 }
 
-.row-clf{
+.row-clf {
   background-color: rgba(255, 77, 77, 0.169);
+}
+
+.left-pagination .ant-pagination {
+  justify-content: flex-start !important;
+  margin: 10px 0 !important;
+  padding: 0;
+  padding-left: 10px;
+}
+
+//Dynamic Checkbox
+
+.dynamic-checkbox {
+  .ant-checkbox-inner {
+    border-radius: 4px;
+    transition: background-color 0.3s, border-color 0.3s;
+    border-color: #d9d9d9; /* default border */
+    background-color: transparent; /* default bg */
+  }
+
+  &.checked .ant-checkbox-inner {
+    background-color: var(--checkbox-color);
+    border-color: var(--checkbox-color);
+  }
+
+  &.checked:hover .ant-checkbox-inner {
+    background-color: var(--checkbox-color);
+    border-color: var(--checkbox-color);
+  }
+
+  .ant-checkbox-checked .ant-checkbox-inner::after {
+    border-color: white;
+  }
+}
+
+//Dynamic Radio
+
+.ant-radio-inner {
+  border-color: var(--radio-color, #d9d9d9); /* fallback to default */
+}
+
+.ant-radio-checked .ant-radio-inner {
+  border-color: var(--radio-color, #1890ff);
+  background-color: var(--radio-color, #1890ff);
+}
+
+.ant-radio-checked .ant-radio-inner::after {
+  background-color: var(--radio-check-color, #fff);
+}
+
+.close-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: -6px;
+  left: -5px;
+  z-index: 100;
+  border-radius: 50%;
+  background: rgb(255, 255, 255);
+  width: 13.5px;
+  height: 13.5px;
 }

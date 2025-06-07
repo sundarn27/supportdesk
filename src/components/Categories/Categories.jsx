@@ -85,7 +85,7 @@ export default function Categories() {
   const titleByCode = (code) => {
     if (code) {
       const item = masterData.find((i) => i.code === code);
-      return item?.title || ""; 
+      return item?.title || "";
     }
     return "";
   };
@@ -188,9 +188,9 @@ export default function Categories() {
       dataIndex === "updatedOn"
         ? record[dataIndex]?.startsWith(value)
         : record[dataIndex]
-            ?.toString()
-            .toLowerCase()
-            .includes(value.toLowerCase()),
+          ?.toString()
+          .toLowerCase()
+          .includes(value.toLowerCase()),
     render: (text) =>
       dataIndex === "updatedOn" ? (
         dayjs(text).format("YYYY-MM-DD")
@@ -295,6 +295,17 @@ export default function Categories() {
               // setIsEdit(false);
               // setButton("Submit");
               // form.resetFields();
+              dispatch(generateCode(label))
+                .then((response) => {
+                  console.log(response);
+                  setFormData((prev) => ({
+                    ...prev,
+                    code: response.payload,
+                  }));
+                })
+                .catch((error) => {
+                  console.log("Something went wrong. Please try again later.");
+                });
             } else {
               setMessageVisible(true);
               setMessageType("warning");
@@ -373,11 +384,16 @@ export default function Categories() {
             )}
           </AnimatePresence>
           <Form form={form} layout="vertical">
-            <Row gutter={16}>
+            <Row gutter={16} style={{ paddingLeft: '20px' }}>
               <Col span={24}>
                 <Form.Item
                   name="categoryName"
-                  label="Category Name"
+                  label={
+                    <span>
+                      Category Name <span style={{ color: 'red' }}>*</span>
+                    </span>
+                  }
+                  required={false}
                   rules={[
                     { required: true, message: "Please enter category name" },
                   ]}
@@ -398,11 +414,16 @@ export default function Categories() {
                 </Form.Item>
               </Col>
             </Row>
-            <Row gutter={16}>
+            <Row gutter={16} style={{ paddingLeft: '20px' }}>
               <Col span={24}>
                 <Form.Item
                   name="departmentName"
-                  label="Department Name"
+                  label={
+                    <span>
+                      Department Name <span style={{ color: 'red' }}>*</span>
+                    </span>
+                  }
+                  required={false}
                   rules={[
                     { required: true, message: "Please enter department" },
                   ]}
@@ -425,7 +446,7 @@ export default function Categories() {
                 </Form.Item>
               </Col>
             </Row>
-            <Row gutter={16}>
+            <Row gutter={16} style={{ paddingLeft: '20px' }}>
               <Col span={24}>
                 <Form.Item name="status" label="Status" valuePropName="checked">
                   <Switch
@@ -450,8 +471,17 @@ export default function Categories() {
         columns={columns}
         dataSource={dataSource}
         rowKey="categoryId"
-        pagination={{ pageSize: 5 }}
         style={{ margin: "10px 5px" }}
+        pagination={{
+          showSizeChanger: true,
+          showQuickJumper: true,
+          pageSizeOptions: ['5', '10', '20', '50'],
+          showTotal: (total, range) =>
+            `${range[0]}–${range[1]} of ${total} items`,
+          defaultPageSize: 8,
+          position: ['bottomLeft']
+        }}
+        className="left-pagination"
       />
     </>
   );

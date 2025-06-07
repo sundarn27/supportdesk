@@ -5,6 +5,7 @@ import Dashboard from "../../components/Dashboard/Dashboard";
 import TicketList from "../../components/List/TicketList";
 import Settings from "../../components/Settings/Settings";
 import { useNavigate, useParams } from "react-router-dom";
+import Search from "antd/es/input/Search";
 
 const { Content } = Layout;
 const { TabPane } = Tabs;

@@ -16,6 +16,7 @@ const AppRoutes = () => (
     <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/:key" element={<Home />} />
+        <Route path="/:key/:prm" element={<Home />} />
     </Routes>
   </Router>
 );

@@ -187,7 +187,12 @@ export default function Email() {
           <Col span={8}>
             <Form.Item
               name="fromId"
-              label="From ID"
+                  label={
+                    <span>
+                      From ID <span style={{ color: 'red' }}>*</span>
+                    </span>
+                  }
+                  required={false}
               rules={[{ required: true, message: "Please enter From ID" }]}
               style={{ width: 300 }}
             >
@@ -201,7 +206,12 @@ export default function Email() {
           <Col span={8}>
             <Form.Item
               name="smtp"
-              label="SMTP"
+                  label={
+                    <span>
+                      SMTP <span style={{ color: 'red' }}>*</span>
+                    </span>
+                  }
+                  required={false}
               rules={[{ required: true, message: "Please enter SMTP" }]}
               style={{ width: 300 }}
             >
@@ -215,7 +225,12 @@ export default function Email() {
           <Col span={8}>
             <Form.Item
               name="port"
-              label="Port"
+                  label={
+                    <span>
+                      Port <span style={{ color: 'red' }}>*</span>
+                    </span>
+                  }
+                  required={false}
               rules={[{ required: true, message: "Please enter Port" }]}
               style={{ width: 300 }}
             >
@@ -232,7 +247,12 @@ export default function Email() {
           <Col span={8}>
             <Form.Item
               name="password"
-              label="Password"
+                  label={
+                    <span>
+                      Password <span style={{ color: 'red' }}>*</span>
+                    </span>
+                  }
+                  required={false}
               rules={[{ required: true, message: "Please enter Password" }]}
               style={{ width: 300 }}
             >
@@ -246,7 +266,12 @@ export default function Email() {
           <Col span={8}>
             <Form.Item
               name="confirmPassword"
-              label="Confirm Password"
+                  label={
+                    <span>
+                      Confirm Password <span style={{ color: 'red' }}>*</span>
+                    </span>
+                  }
+                  required={false}
               dependencies={["password"]}
               rules={[
                 { required: true, message: "Please confirm your password" },
@@ -273,7 +298,12 @@ export default function Email() {
           <Col span={8}>
             <Form.Item
               name="ssl"
-              label="SSL"
+                  label={
+                    <span>
+                      SSL <span style={{ color: 'red' }}>*</span>
+                    </span>
+                  }
+                  required={false}
               rules={[{ required: true, message: "Please enter SSL" }]}
               style={{ width: 100 }}
             >

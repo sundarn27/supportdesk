@@ -272,6 +272,17 @@ export default function Departments() {
               // setIsEdit(false);
               // setButton("Submit");
               // form.resetFields();
+              dispatch(generateCode(label))
+                .then((response) => {
+                  console.log(response);
+                  setFormData((prev) => ({
+                    ...prev,
+                    code: response.payload,
+                  }));
+                })
+                .catch((error) => {
+                  console.log("Something went wrong. Please try again later.");
+                });
             } else {
               setMessageVisible(true);
               setMessageType("warning");
@@ -352,11 +363,16 @@ export default function Departments() {
           </AnimatePresence>
 
           <Form layout="vertical" form={form}>
-            <Row gutter={16}>
+            <Row gutter={16} style={{ paddingLeft: '20px' }}>
               <Col span={24}>
                 <Form.Item
                   name="departmentName"
-                  label="Department Name"
+                  label={
+                    <span>
+                      Department Name <span style={{ color: 'red' }}>*</span>
+                    </span>
+                  }
+                  required={false}
                   rules={[
                     { required: true, message: "Please enter Department name" },
                   ]}
@@ -376,7 +392,7 @@ export default function Departments() {
                 </Form.Item>
               </Col>
             </Row>
-            <Row gutter={16}>
+            <Row gutter={16} style={{ paddingLeft: '20px' }}>
               <Col span={24}>
                 <Form.Item name="status" label="Status" valuePropName="checked">
                   <Switch
@@ -393,11 +409,16 @@ export default function Departments() {
                 </Form.Item>
               </Col>
             </Row>
-            <Row gutter={16}>
+            <Row gutter={16} style={{ paddingLeft: '20px' }}>
               <Col span={24}>
                 <Form.Item
                   name="emailId"
-                  label="Email ID"
+                  label={
+                    <span>
+                      Email ID <span style={{ color: 'red' }}>*</span>
+                    </span>
+                  }
+                  required={false}
                   rules={[
                     {
                       required: true,
@@ -426,7 +447,16 @@ export default function Departments() {
         columns={columns}
         dataSource={dataSource}
         rowKey="code"
-        pagination={{ pageSize: 5 }}
+        pagination={{
+          showSizeChanger: true,
+          showQuickJumper: true,
+          pageSizeOptions: ['5', '10', '20', '50'],
+          showTotal: (total, range) =>
+            `${range[0]}–${range[1]} of ${total} items`,
+          defaultPageSize: 8,
+          position: ['bottomLeft']
+        }}
+        className="left-pagination"
         style={{ margin: "2px 5px", marginTop: "10px" }}
       />
     </>

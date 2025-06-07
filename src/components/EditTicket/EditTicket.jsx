@@ -21,6 +21,8 @@ import {
     Typography,
     Upload,
     Layout,
+    Radio,
+    Input,
 } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { rgba } from "framer-motion";
@@ -42,6 +44,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { createTicket, fetchTicketList } from "../../features/ticketSlice";
 import { motion, AnimatePresence } from "framer-motion";
 import { Content } from "antd/es/layout/layout";
+import DynamicCheckbox from "../DynamicCheckbox/DynamicCheckbox.test";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
+
 
 const { Option } = Select;
 const { Text, Title } = Typography;
@@ -60,10 +68,17 @@ const getIconByExtension = (filename) => {
     return <FileOutlined />;
 };
 
+const style = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+};
+
 export default function EditTicket({ isEdit, singleData, onClose }) {
     const dispatch = useDispatch();
+    const fileListRef = useRef([]);
     const { masterData, loading, error } = useSelector((state) => state.master);
-    console.log(isEdit, singleData);
+    console.log("EditTicket Props:", isEdit, singleData);
     const [form] = Form.useForm();
     const [searchText, setSearchText] = useState("");
     const [searchedColumn, setSearchedColumn] = useState("");
@@ -81,7 +96,31 @@ export default function EditTicket({ isEdit, singleData, onClose }) {
     const [messageType, setMessageType] = useState("");
     const [messageContent, setMessageContent] = useState("");
     const [openModalIndex, setOpenModalIndex] = useState(null);
+    const [checkboxStates, setCheckboxStates] = useState(null);
+    const [value, setValue] = useState(1);
+    const onChange = (e) => {
+        console.log(e.target.value)
+        setDataSource((prev) => ({
+            ...prev,
+            status: e.target.value,
+        }));
+        console.log(dataSource)
+    };
 
+    useEffect(() => {
+        const initialState = {};
+        statusOptions.forEach((sts) => {
+            initialState[sts.title] = false;
+        });
+        setCheckboxStates(initialState);
+    }, []);
+
+    const handleCheckboxChange = (key) => (checked) => {
+        setCheckboxStates((prev) => ({
+            ...prev,
+            [key]: checked,
+        }));
+    };
     const handleMenuClick = (e) => {
         const newStatus = statusOptions.find((opt) => opt._id === e.key);
         setSelected(newStatus);
@@ -139,28 +178,29 @@ export default function EditTicket({ isEdit, singleData, onClose }) {
             message.error(`${file.name} upload failed`);
         }
     };
-
+    const now = new Date();
+    const utcTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
     const handleUpdate = () => {
         setMessageVisible(false);
+
         form
             .validateFields()
             .then((values) => {
                 const prev = dataSource.updatedBy || [];
                 const statusChanged = dataSource.status !== values.status;
-
+                console.log(statusChanged)
                 if (statusChanged && (!comments || comments.trim() === "")) {
                     message.error("Please enter comments when changing status.");
-                    return;
                 }
 
                 const uptTicket = {
                     ticketId: dataSource.ticketId,
-                    subject: dataSource.subject,
-                    description: dataSource.description,
-                    department: dataSource.department,
-                    category: dataSource.category,
-                    piriority: dataSource.piriority,
-                    status: dataSource.status,
+                    subject: values.subject || dataSource.subject,
+                    description: values.description || dataSource.description,
+                    department: values.department || dataSource.department,
+                    category: values.category || dataSource.category,
+                    piriority: values.piriority || dataSource.piriority,
+                    status: values.status || dataSource.status,
                     requester: "sudalai@codasol.com",
                     updatedBy: [
                         ...prev,
@@ -168,12 +208,12 @@ export default function EditTicket({ isEdit, singleData, onClose }) {
                             name: "Sudalai S",
                             email: "sudalai@codasol.com",
                             comments: comments || "",
-                            attchments: filesNameLst,
-                            updatedOn: new Date().toISOString(),
+                            attachments: filesNameLst,
+                            updatedOn: utcTime.toISOString(),
                         },
                     ],
-                    createdOn: dataSource.createdOn || new Date().toISOString(),
-                    updatedOn: new Date().toISOString(),
+                    createdOn: dataSource.createdOn || utcTime.toISOString(),
+                    updatedOn: utcTime.toISOString(),
                 };
 
                 console.log("Updating ticket:", uptTicket);
@@ -182,27 +222,31 @@ export default function EditTicket({ isEdit, singleData, onClose }) {
                     .then((response) => {
                         const responseMessage = response.payload;
                         console.log(response);
+
                         if (responseMessage.toLowerCase().includes("successfully")) {
                             setMessageVisible(true);
                             setMessageType("success");
                             setMessageContent(responseMessage);
+
                             dispatch(fetchTicketList());
                             form.resetFields();
                             setFileList([]);
+                            setComments("");
+
                             setDataSource((ex) => ({
                                 ...ex,
-                                status: dataSource.status,
+                                status: values.status || dataSource.status,
                                 updatedBy: [
                                     ...prev,
                                     {
                                         name: "Sudalai S",
                                         email: "sudalai@codasol.com",
                                         comments: comments || "",
-                                        attchments: filesNameLst,
-                                        updatedOn: new Date().toISOString(),
+                                        attachments: filesNameLst,
+                                        updatedOn: utcTime.toISOString(),
                                     },
                                 ],
-                            }))
+                            }));
                         } else {
                             setMessageVisible(true);
                             setMessageType("warning");
@@ -225,6 +269,16 @@ export default function EditTicket({ isEdit, singleData, onClose }) {
             });
     };
 
+    useEffect(() => {
+        let timer;
+        if (messageVisible) {
+            timer = setTimeout(() => {
+                setMessageVisible(false);
+            }, 5000);
+        }
+        return () => clearTimeout(timer);
+    }, [messageVisible]);
+
     return (
         <>
             <Drawer
@@ -233,7 +287,7 @@ export default function EditTicket({ isEdit, singleData, onClose }) {
                         {dataSource.ticketId}
                     </Tag>
                 }
-                width={1200}
+                width={920}
                 onClose={() => {
                     form.resetFields();
                     onClose();
@@ -268,8 +322,8 @@ export default function EditTicket({ isEdit, singleData, onClose }) {
                                 style={{
                                     position: "fixed",
                                     top: "10px",
-                                    left: "50%",
-                                    transform: "translateX(-50%)",
+                                    left: "60%",
+                                    transform: "translateX(-40%)",
                                     zIndex: 1000,
                                     width: "fit-content",
                                     maxWidth: "90%",
@@ -284,13 +338,14 @@ export default function EditTicket({ isEdit, singleData, onClose }) {
                             style={{
                                 padding: 12,
                                 paddingTop: 0,
+                                paddingLeft: 20,
                                 display: "flex",
                                 flexWrap: "wrap",
                                 gap: 12,
                                 justifyContent: "space-between",
                             }}
                         >
-                            <div style={{ flex: "1 1 75%", minWidth: 300 }}>
+                            <div style={{ flex: "1 1 65%", minWidth: 300 }}>
                                 <div
                                     style={{
                                         padding: 0,
@@ -303,7 +358,7 @@ export default function EditTicket({ isEdit, singleData, onClose }) {
                                     <Title level={3} style={{ marginTop: 0 }}>
                                         Subject: {dataSource.subject}
                                     </Title>
-                                    <Select
+                                    {/* <Select
                                         style={{ width: 120 }}
                                         placeholder="Select Status"
                                         optionLabelProp="label"
@@ -330,7 +385,7 @@ export default function EditTicket({ isEdit, singleData, onClose }) {
                                                 </Tag>
                                             </Option>
                                         ))}
-                                    </Select>
+                                    </Select> */}
                                 </div>
 
                                 <Card
@@ -342,7 +397,7 @@ export default function EditTicket({ isEdit, singleData, onClose }) {
                                         maxHeight: isEdit ? "35vh" : "75vh",
                                     }}
                                 >
-                                    {dataSource?.updatedBy?.map((dt, index) => (
+                                    {dataSource?.updatedBy?.sort((a, b) => dayjs.utc(b.updatedOn).valueOf() - dayjs.utc(a.updatedOn).valueOf()).map((dt, index) => (
                                         <Col key={index} span={24}>
                                             {index !== 0 && <Divider style={{ marginTop: "10px" }} />}
                                             <Card.Meta
@@ -365,9 +420,9 @@ export default function EditTicket({ isEdit, singleData, onClose }) {
                                                             strong
                                                             style={{ color: "#999", fontSize: "10px" }}
                                                         >
-                                                            {dt.updatedOn}
+                                                            {dayjs.utc(dt.updatedOn).format("DD-MM-YYYY hh:mm A")}
                                                         </Text>
-                                                        {dt.attchments.length !== 0 ? <Button
+                                                        {Array.isArray(dt.attchments) && dt.attchments.length > 0 ? <Button
                                                             color="default"
                                                             variant="text"
                                                             onClick={() => showModal(index)}
@@ -388,6 +443,11 @@ export default function EditTicket({ isEdit, singleData, onClose }) {
                                                                         : []
                                                                 }
                                                             />
+                                                            {/* {dt.attchments.map((url) => {
+                                                                return(
+                                                                    <FilePreviewer fileUrl={url} />
+                                                                )
+                                                            })} */}
                                                         </Modal>
                                                     </div>
                                                 }
@@ -399,19 +459,33 @@ export default function EditTicket({ isEdit, singleData, onClose }) {
 
                                 {isEdit && (
                                     <>
+                                        <div style={{ display: "flex", flexDirection: 'row', justifyContent: "space-between", alignItems: 'center' }}>
+                                            <span style={{ fontWeight: 600 }}>
+                                                Leave a comment <span style={{ color: 'red' }}>*</span>
+                                            </span>
+                                            <Radio.Group value={dataSource.status} onChange={onChange} name="status"
+                                                style={{ display: 'flex', flexDirection: 'row', marginTop: '10px' }}>
+
+                                                {statusOptions.map((sts) => (
+                                                    <div
+                                                        key={sts.code}
+                                                        style={{
+                                                            "--radio-color": sts.code === value ? sts.theme : "",
+                                                            "--radio-check-color": sts.code === value ? sts.theme : "",
+                                                            marginBottom: 8,
+                                                        }}
+                                                    >
+                                                        <Radio value={sts.code}><span style={{ color: sts.theme }}>{sts.title}</span></Radio>
+                                                    </div>
+                                                ))}
+                                            </Radio.Group>
+                                        </div>
                                         <Form.Item
                                             name="comments"
-                                            label="Leave a comment"
-                                            rules={[
-                                                { required: true, message: "Please enter comments" },
-                                            ]}
+                                            rules={[{ required: true, message: "Please enter comments" }]}
                                         >
-                                            <TextArea
-                                                value={comments}
-                                                onChange={(e) => setComments(e.target.value)}
-                                                rows={4}
-                                                placeholder="Enter comments..."
-                                            />
+
+                                            <TextArea rows={4} placeholder="Enter comments..." value={comments} onChange={(e) => { setComments(e.target.value) }} />
                                         </Form.Item>
 
                                         <div style={{ marginTop: 10 }}>
@@ -424,13 +498,40 @@ export default function EditTicket({ isEdit, singleData, onClose }) {
                                                     multiple
                                                     customRequest={handleCustomUpload}
                                                     fileList={fileList}
-                                                    onChange={({ fileList }) => {
-                                                        const fileNames = fileList.map((file) => file.name);
+                                                    beforeUpload={(file) => {
+                                                        const isDuplicate = fileListRef.current.some(
+                                                            (f) => f.name === file.name && f.size === file.size
+                                                        );
+                                                        if (isDuplicate) {
+                                                            setMessageContent(`${file.name} is already added.`);
+                                                            setMessageType("warning");
+                                                            setMessageVisible(true)
+                                                            message.warning();
+                                                            return Upload.LIST_IGNORE;
+                                                        }
+
+                                                        const isLt5MB = file.size / 1024 / 1024 < 5;
+                                                        if (!isLt5MB) {
+                                                            setMessageContent(`${file.name} is larger than 5MB.`);
+                                                            setMessageType("warning");
+                                                            setMessageVisible(true)
+                                                            message.error(`${file.name} is larger than 5MB.`);
+                                                            return Upload.LIST_IGNORE;
+                                                        }
+
+                                                        return true;
+                                                    }}
+                                                    onChange={({ fileList: newFileList }) => {
+                                                        setFileList(newFileList);
+                                                        fileListRef.current = newFileList;
+
+                                                        const fileNames = newFileList.map((file) => file.name);
                                                         setFilesNameLst(fileNames);
-                                                        setFileList(fileList);
-                                                        const validFiles = fileList
+
+                                                        const validFiles = newFileList
                                                             .filter((f) => f.status === "done")
                                                             .map((f) => f.originFileObj);
+
                                                         setUploadedFiles(validFiles);
                                                     }}
                                                 >
@@ -470,13 +571,16 @@ export default function EditTicket({ isEdit, singleData, onClose }) {
                                         <strong>Department :</strong> {dataSource.department}
                                     </p>
                                     <p>
-                                        <strong>Created :</strong> {dataSource.createdOn}
-                                    </p>
-                                    <p>
-                                        <strong>Last activity :</strong> {dataSource.updatedOn}
+                                        <strong>Created :</strong> {dayjs.utc(dataSource.createdOn).format("DD-MM-YYYY hh:mm A")}
                                     </p>
                                     <p>
                                         <strong>Requester :</strong> {dataSource.requester}
+                                    </p>
+                                    <p>
+                                        <strong>Last activity :</strong> {dayjs.utc(dataSource.updatedOn).format("DD-MM-YYYY hh:mm A")}
+                                    </p>
+                                    <p>
+                                        <strong>Updatedby :</strong> {dataSource.updatedBy[(dataSource.updatedBy.length) - 1].name}
                                     </p>
                                 </Card>
                             </div>
